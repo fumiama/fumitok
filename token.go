@@ -8,7 +8,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"hash/crc64"
-	"math/rand/v2"
+	"math/rand"
 	"time"
 
 	"golang.org/x/crypto/chacha20poly1305"
