@@ -171,7 +171,7 @@ func (t *Tokenizer) Refresh(
 	if crc != h.Sum64() {
 		return "", ErrInvalidToken
 	}
-	if time.Now().Add(validAfter).After( // still valid after 30 mins
+	if time.Now().Add(-validAfter).After( // still invalid even before this time
 		time.UnixMilli(int64(binary.LittleEndian.Uint64(data[:8]))),
 	) {
 		return "", ErrExpiredToken

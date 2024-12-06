@@ -3,6 +3,7 @@ package fumitok
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"testing"
 	"time"
 )
@@ -28,15 +29,26 @@ func TestTokenizer(t *testing.T) {
 		t.Fatal(err)
 	}
 	if vid != id || addt != 0x34 {
-		t.Fatal("id", id, "vid", vid, "addt", addt)
+		t.Fatal("validate id", id, "vid", vid, "addt", addt)
 	}
-	token, err = tk.Generate(id, time.Now().Add(-time.Minute), 0, 0)
+	token2, err := tk.Generate(id, time.Now().Add(-time.Minute), 0, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Log(token)
-	_, _, err = tk.Validate(token, 0)
+	t.Log(token2)
+	_, _, err = tk.Validate(token2, 0)
 	if err != ErrExpiredToken {
 		t.Fatal("unexpected err", err)
+	}
+	token, err = tk.Refresh(token, time.Now().Add(time.Minute), time.Minute*2, 0x00ff)
+	if err != nil {
+		t.Fatal(err)
+	}
+	vid, addt, err = tk.Validate(token, 0x00ff)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if vid != id || addt != 0x34 {
+		t.Fatal("refresh id", id, "vid", vid, "addt", fmt.Sprintf("%02x", addt))
 	}
 }
