@@ -97,39 +97,40 @@ func (t *Tokenizer) Generate(id uint64, expireAt time.Time, addt, mask uint16) (
 //   - uint16 附加数据
 func (t *Tokenizer) Validate(
 	token string, mask uint16, checks ...func(uint16) error,
-) (uint64, uint16, error) {
+) (uint64, uint16, time.Time, error) {
 	if len(token) != TokenLength {
-		return 0, 0, ErrInvalidTokenLength
+		return 0, 0, time.Time{}, ErrInvalidTokenLength
 	}
 	data, err := base64.URLEncoding.DecodeString(token)
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, time.Time{}, err
 	}
 	addt := binary.LittleEndian.Uint16(data[:2])
 	addtmsk := addt & mask
 	for _, fn := range checks {
 		err = fn(addtmsk)
 		if err != nil {
-			return 0, 0, err
+			return 0, 0, time.Time{}, err
 		}
 	}
 	data, err = decode(t.aead, addt, data[2:])
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, time.Time{}, err
 	}
 	h := crc64.New(t.tabl)
 	_, err = h.Write(data[:16])
 	if err != nil {
-		return 0, 0, err
+		return 0, 0, time.Time{}, err
 	}
 	crc := binary.BigEndian.Uint64(data[16:])
 	if crc != h.Sum64() {
-		return 0, 0, ErrInvalidToken
+		return 0, 0, time.Time{}, ErrInvalidToken
 	}
-	if time.Now().After(time.UnixMilli(int64(binary.LittleEndian.Uint64(data[:8])))) {
-		return 0, 0, ErrExpiredToken
+	expireAt := time.UnixMilli(int64(binary.LittleEndian.Uint64(data[:8])))
+	if time.Now().After(expireAt) {
+		return 0, 0, time.Time{}, ErrExpiredToken
 	}
-	return binary.LittleEndian.Uint64(data[8:16]), addtmsk, nil
+	return binary.LittleEndian.Uint64(data[8:16]), addtmsk, expireAt, nil
 }
 
 // Refresh 过期时刷新 token

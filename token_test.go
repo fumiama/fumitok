@@ -24,7 +24,7 @@ func TestTokenizer(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(token)
-	vid, addt, err := tk.Validate(token, 0x00ff)
+	vid, addt, _, err := tk.Validate(token, 0x00ff)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +36,7 @@ func TestTokenizer(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(token2)
-	_, _, err = tk.Validate(token2, 0)
+	_, _, _, err = tk.Validate(token2, 0)
 	if err != ErrExpiredToken {
 		t.Fatal("unexpected err", err)
 	}
@@ -44,7 +44,7 @@ func TestTokenizer(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	vid, addt, err = tk.Validate(token, 0x00ff)
+	vid, addt, _, err = tk.Validate(token, 0x00ff)
 	if err != nil {
 		t.Fatal(err)
 	}
