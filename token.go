@@ -128,9 +128,9 @@ func (t *Tokenizer) Validate(
 	}
 	expireAt := time.UnixMilli(int64(binary.LittleEndian.Uint64(data[:8])))
 	if time.Now().After(expireAt) {
-		return 0, 0, time.Time{}, ErrExpiredToken
+		err = ErrExpiredToken
 	}
-	return binary.LittleEndian.Uint64(data[8:16]), addtmsk, expireAt, nil
+	return binary.LittleEndian.Uint64(data[8:16]), addtmsk, expireAt, err
 }
 
 // Refresh 过期时刷新 token
